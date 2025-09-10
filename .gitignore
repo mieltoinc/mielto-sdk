@@ -36,5 +36,5 @@ next-env.d.ts
 pnpm-lock.yaml
 
 # your test constants
-test-contants.ts
+/src/test-constants.ts
 
