@@ -5,21 +5,42 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
-    "test": "tsx example-compress.ts"
+    "test": "tsx example-compress.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "mielto",
     "compression",
     "text",
     "api",
-    "sdk"
+    "sdk",
+    "typescript"
   ],
   "author": "Mielto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mieltoinc/mielto.git",
+    "directory": "libs/mielto_typescript"
+  },
+  "homepage": "https://mielto.com",
+  "bugs": {
+    "url": "https://github.com/mieltoinc/mielto/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "ts-node": "^10.9.2",
@@ -31,6 +52,7 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ]
 }

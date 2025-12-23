@@ -1,0 +1,53 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Test files
+example-compress.ts
+test/
+*.test.ts
+*.spec.ts
+
+# Development files
+.git/
+.gitignore
+.npmignore
+*.log
+*.tsbuildinfo
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (keep dist/ in package, but ignore build configs)
+tsconfig.json
+tsconfig.*.json
+
+# Documentation (keep README.md, but ignore others)
+CHANGELOG.md
+*.md
+!README.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Misc
+coverage/
+.nyc_output/
+node_modules/
+
