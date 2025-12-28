@@ -1,7 +1,8 @@
 /** Mielto TypeScript SDK - Main entry point. */
 
 // Client classes
-export { Mielto, MieltoOptions, BaseClient, BaseClientOptions } from './clients/index';
+export { Mielto, BaseClient } from './clients/index';
+export type { MieltoOptions, BaseClientOptions } from './clients/index';
 
 // Exception classes
 export * from './exceptions';

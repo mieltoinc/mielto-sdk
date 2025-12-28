@@ -7,6 +7,9 @@
  */
 
 import { Mielto } from '../src/index';
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 async function main() {
   const client = new Mielto({
