@@ -8,6 +8,9 @@
 
 import { Mielto } from '../src/index';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 async function main() {
   const client = new Mielto({
     apiKey: process.env.MIELTO_API_KEY || 'your-api-key-here',
@@ -17,11 +20,10 @@ async function main() {
 
   // Create a collection
   const collection = await client.collections.create({
-    name: 'My Documents',
+    name: 'My Documents ' + new Date().toISOString(),
     description: 'A collection of important documents',
     metadata: {
       category: 'personal',
-      created_at: new Date().toISOString(),
     },
   });
 
@@ -152,17 +154,17 @@ async function main() {
 
   console.log('=== Updating Collection ===\n');
 
-  // Update collection metadata
-  const updatedCollection = await client.collections.update(collection.id, {
-    name: 'My Updated Documents',
-    description: 'An updated collection of important documents',
-    metadata: {
-      category: 'personal',
-      updated_at: new Date().toISOString(),
-    },
-  });
+  // // Update collection metadata
+  // const updatedCollection = await client.collections.update(collection.id, {
+  //   name: 'My Updated Documents',
+  //   description: 'An updated collection of important documents',
+  //   metadata: {
+  //     category: 'personal',
+  //     updated_at: new Date().toISOString(),
+  //   },
+  // });
 
-  console.log('Updated collection:', updatedCollection.name);
+  // console.log('Updated collection:', updatedCollection.name);
   console.log('');
 
   console.log('=== Listing Collections ===\n');
@@ -180,9 +182,9 @@ async function main() {
 
   console.log('=== Deleting Collection ===\n');
 
-  // Delete the collection
-  await client.collections.delete(collection.id);
-  console.log('Collection deleted successfully');
+  // // Delete the collection
+  // await client.collections.delete(collection.id);
+  // console.log('Collection deleted successfully');
 
   client.close();
 }

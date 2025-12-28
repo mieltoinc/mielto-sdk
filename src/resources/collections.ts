@@ -11,6 +11,7 @@ import {
   UploadRequest,
   UploadResponse,
   FileUpload,
+  CollectionStoreType,
 } from '../types/collection';
 import { detectMimetypeFromFile, detectMimetypeFromBuffer } from '../utils';
 
@@ -19,13 +20,16 @@ export class Collections {
 
   async create(collectionData: CollectionCreate | Record<string, any>): Promise<Collection> {
     const payload = collectionData;
+    if (payload.store_type) {
+      const validStoreTypes = Object.values(CollectionStoreType);
+      if (!validStoreTypes.includes(payload.store_type)) {
+        throw new Error('Invalid store type');
+      }
+    } else {
+      payload.store_type = CollectionStoreType.PGVECTOR;
+    }
     return this.client.post<Collection>('/collections', payload);
   }
-
-  async get(collectionId: string): Promise<Collection> {
-    return this.client.get<Collection>(`/collections/${collectionId}`);
-  }
-
   async list(options: {
     skip?: number;
     limit?: number;

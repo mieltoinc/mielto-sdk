@@ -1,8 +1,24 @@
 /** Collection type definitions. */
 
-export type CollectionStoreType = 'pgvector' | 'pinecone' | 'qdrant' | 'langchain_pgvector';
-export type CollectionStatus = 'active' | 'inactive' | 'deleting' | 'archived';
-export type SearchType = 'hybrid' | 'vector' | 'keyword';
+export enum CollectionStoreType {
+  PGVECTOR = 'pgvector',
+  PINECONE = 'pinecone',
+  QDRANT = 'qdrant',
+  LANGCHAIN_PGVECTOR = 'langchain_pgvector',
+}
+
+export enum CollectionStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DELETING = 'deleting',
+  ARCHIVED = 'archived',
+}
+
+export enum SearchType {
+  HYBRID = 'hybrid',
+  VECTOR = 'vector',
+  KEYWORD = 'keyword',
+}
 
 export interface CollectionCreate {
   name: string;
