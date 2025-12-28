@@ -1,6 +1,6 @@
 /** Memory resource for interacting with the Mielto Memory API. */
 
-import { BaseClient } from '../clients/base.js';
+import { BaseClient } from '../clients/base';
 import {
   Memory,
   MemoryCreate,
@@ -12,7 +12,7 @@ import {
   MemoryFromMessagesRequest,
   MemoryFromMessagesResponse,
   MemoryChunksResponse,
-} from '../types/memory.js';
+} from '../types/memory';
 
 export class Memories {
   constructor(private client: BaseClient) {}

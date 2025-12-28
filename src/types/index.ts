@@ -1,7 +1,7 @@
 /** Type definitions for Mielto API. */
 
-export * from './chat.js';
-export * from './memory.js';
-export * from './collection.js';
-export * from './compress.js';
+export * from './chat';
+export * from './memory';
+export * from './collection';
+export * from './compress';
 

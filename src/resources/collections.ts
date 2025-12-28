@@ -1,6 +1,6 @@
 /** Collection resource for interacting with the Mielto Collections API. */
 
-import { BaseClient } from '../clients/base.js';
+import { BaseClient } from '../clients/base';
 import {
   Collection,
   CollectionCreate,
@@ -11,7 +11,8 @@ import {
   UploadRequest,
   UploadResponse,
   FileUpload,
-} from '../types/collection.js';
+} from '../types/collection';
+import { detectMimetypeFromFile, detectMimetypeFromBuffer } from '../utils';
 
 export class Collections {
   constructor(private client: BaseClient) {}
@@ -89,12 +90,20 @@ export class Collections {
         // Convert File to base64 using FileReader
         const fileBase64 = await this.fileToBase64(options.file);
         const label = options.label || options.file.name;
-        const mimetype = options.mimetype || options.file.type || 'application/octet-stream';
+        
+        // Auto-detect mimetype if not provided
+        let detectedMimetype = options.mimetype || options.file.type;
+        if (!detectedMimetype) {
+          const detected = await detectMimetypeFromFile(options.file);
+          if (detected) {
+            detectedMimetype = detected;
+          }
+        }
 
         filesList.push({
           file: fileBase64,
           label: label,
-          mimetype: mimetype,
+          mimetype: detectedMimetype || 'application/octet-stream',
         });
       } catch (error: any) {
         throw new Error(`Failed to read File object: ${error.message}`);
@@ -106,9 +115,7 @@ export class Collections {
       try {
         // Dynamic import for Node.js modules (only works in Node.js)
         // This will fail in browser environments, which is expected
-        // @ts-expect-error - Node.js modules, only available in Node.js runtime
         const fs = await import('fs/promises');
-        // @ts-expect-error - Node.js modules, only available in Node.js runtime
         const path = await import('path');
 
         // Read file
@@ -124,17 +131,8 @@ export class Collections {
         // Auto-detect mimetype if not provided
         let detectedMimetype = options.mimetype;
         if (!detectedMimetype) {
-          // Try using file-type library if available (optional dependency)
-          try {
-            // @ts-expect-error - Optional dependency, may not be installed
-            const { fileTypeFromBuffer } = await import('file-type');
-            if (fileTypeFromBuffer) {
-              const fileType = await fileTypeFromBuffer(fileBuffer);
-              detectedMimetype = fileType?.mime;
-            }
-          } catch {
-            // file-type not available, continue with extension-based detection
-          }
+          // Try using file-type library (works in both Node.js and browser environments)
+          detectedMimetype = await detectMimetypeFromBuffer(fileBuffer);
           
           // Fallback to extension-based detection
           if (!detectedMimetype) {
@@ -217,7 +215,7 @@ export class Collections {
     return this.client.post<UploadResponse>('/upload', payload);
   }
 
-  async insertDirectory(_options: {
+  async insertDirectory(options: {
     collection_id: string;
     directory_path: string;
     recursive?: boolean;
@@ -225,13 +223,260 @@ export class Collections {
     exclude_patterns?: string[];
     metadata?: Record<string, any>;
     ingest?: boolean;
-    reader?: string | Record<string, string>;
+    reader?: string | Record<string, any>;
     batch_size?: number;
     show_progress?: boolean;
   }): Promise<UploadResponse[]> {
-    // This would require Node.js fs module
-    // For now, throw an error indicating this is a Node.js-only feature
-    throw new Error('insert_directory requires Node.js environment with fs module');
+    try {
+      // Dynamic import for Node.js modules (only works in Node.js)
+      // This will fail in browser environments, which is expected
+      const fs = await import('fs/promises');
+      const path = await import('path');
+
+      const directoryPath = options.directory_path;
+      const recursive = options.recursive !== false; // Default to true
+      const fileExtensions = options.file_extensions;
+      const excludePatterns = options.exclude_patterns || [];
+      const batchSize = options.batch_size || 10;
+      const showProgress = options.show_progress !== false; // Default to true
+
+      // Check if directory exists
+      try {
+        const stats = await fs.stat(directoryPath);
+        if (!stats.isDirectory()) {
+          throw new Error(`Not a directory: ${directoryPath}`);
+        }
+      } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          throw new Error(`Directory not found: ${directoryPath}`);
+        }
+        throw error;
+      }
+
+      // Collect all files
+      const filesToUpload = await this._collectFiles(
+        fs,
+        path,
+        directoryPath,
+        recursive,
+        fileExtensions,
+        excludePatterns
+      );
+
+      if (filesToUpload.length === 0) {
+        if (showProgress) {
+          console.log('No files found to upload');
+        }
+        return [];
+      }
+
+      if (showProgress) {
+        console.log(`Found ${filesToUpload.length} file(s) to upload`);
+      }
+
+      // Upload in batches
+      const responses: UploadResponse[] = [];
+      const totalBatches = Math.ceil(filesToUpload.length / batchSize);
+
+      for (let i = 0; i < filesToUpload.length; i += batchSize) {
+        const batch = filesToUpload.slice(i, i + batchSize);
+        const batchNumber = Math.floor(i / batchSize) + 1;
+
+        if (showProgress) {
+          console.log(`Uploading batch ${batchNumber}/${totalBatches} (${batch.length} file(s))`);
+        }
+
+        // Prepare files for this batch
+        const filesList: FileUpload[] = [];
+
+        for (const filePath of batch) {
+          try {
+            // Read file
+            const fileBuffer = await fs.readFile(filePath);
+
+            // Convert to base64
+            const fileBase64 = fileBuffer.toString('base64');
+
+            // Get relative path for label
+            let label: string;
+            try {
+              const relativePath = path.relative(directoryPath, filePath);
+              label = relativePath;
+            } catch {
+              label = path.basename(filePath);
+            }
+
+            // Auto-detect mimetype
+            let detectedMimetype = await detectMimetypeFromBuffer(fileBuffer);
+
+            // Fallback to extension-based detection
+            if (!detectedMimetype) {
+              const ext = path.extname(filePath).toLowerCase();
+              const mimeTypes: Record<string, string> = {
+                '.pdf': 'application/pdf',
+                '.doc': 'application/msword',
+                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                '.txt': 'text/plain',
+                '.md': 'text/markdown',
+                '.html': 'text/html',
+                '.json': 'application/json',
+                '.csv': 'text/csv',
+                '.xls': 'application/vnd.ms-excel',
+                '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                '.ppt': 'application/vnd.ms-powerpoint',
+                '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.gif': 'image/gif',
+                '.svg': 'image/svg+xml',
+              };
+              detectedMimetype = mimeTypes[ext] || 'application/octet-stream';
+            }
+
+            filesList.push({
+              file: fileBase64,
+              label: label,
+              mimetype: detectedMimetype,
+            });
+          } catch (error: any) {
+            if (showProgress) {
+              console.warn(`Failed to read file "${filePath}": ${error.message}`);
+            }
+            // Continue with other files in the batch
+          }
+        }
+
+        if (filesList.length === 0) {
+          if (showProgress) {
+            console.warn(`Batch ${batchNumber} had no valid files to upload`);
+          }
+          continue;
+        }
+
+        // Upload batch using the existing insert method structure
+        const uploadReq: UploadRequest = {
+          collection_id: options.collection_id,
+          content_type: 'file',
+          files: filesList,
+          metadata: options.metadata,
+          ingest: options.ingest !== false,
+          reader: options.reader,
+        };
+
+        const payload: any = { ...uploadReq };
+        // Remove undefined fields
+        Object.keys(payload).forEach(key => {
+          if (payload[key] === undefined) {
+            delete payload[key];
+          }
+        });
+
+        try {
+          const response = await this.client.post<UploadResponse>('/upload', payload);
+          responses.push(response);
+        } catch (error: any) {
+          if (showProgress) {
+            console.error(`Failed to upload batch ${batchNumber}: ${error.message}`);
+          }
+          // Continue with next batch
+        }
+      }
+
+      if (showProgress) {
+        console.log(`Completed: ${responses.length}/${totalBatches} batch(es) uploaded successfully`);
+      }
+
+      return responses;
+    } catch (error: any) {
+      // If fs import fails, we're not in Node.js
+      if (
+        error.code === 'ERR_MODULE_NOT_FOUND' ||
+        error.message?.includes('Cannot find module') ||
+        error.message?.includes('fs') ||
+        error.code === 'ERR_UNSUPPORTED_DIR_IMPORT'
+      ) {
+        throw new Error(
+          'insert_directory requires Node.js environment with fs module. ' +
+          'This feature is not available in browser environments. ' +
+          'Error: ' + error.message
+        );
+      }
+      // Re-throw other errors
+      throw error;
+    }
+  }
+
+  /**
+   * Collect files from directory based on filters.
+   * @private
+   */
+  private async _collectFiles(
+    fs: any,
+    path: any,
+    directoryPath: string,
+    recursive: boolean,
+    fileExtensions?: string[],
+    excludePatterns?: string[]
+  ): Promise<string[]> {
+    const files: string[] = [];
+
+    async function walkDirectory(dir: string, isRecursive: boolean): Promise<void> {
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            if (isRecursive) {
+              // Check if directory should be excluded
+              if (excludePatterns && excludePatterns.some(pattern => {
+                // Simple pattern matching - support exact match and wildcard patterns
+                if (pattern.includes('*')) {
+                  const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+                  return regex.test(entry.name);
+                }
+                return entry.name === pattern;
+              })) {
+                continue;
+              }
+              await walkDirectory(fullPath, isRecursive);
+            }
+          } else if (entry.isFile()) {
+            // Check if file should be excluded
+            if (excludePatterns && excludePatterns.some(pattern => {
+              // Simple pattern matching
+              if (pattern.includes('*')) {
+                const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+                return regex.test(entry.name);
+              }
+              return entry.name === pattern;
+            })) {
+              continue;
+            }
+
+            // Check file extension
+            if (fileExtensions && fileExtensions.length > 0) {
+              const ext = path.extname(fullPath).toLowerCase();
+              if (!fileExtensions.some(extPattern => ext === extPattern.toLowerCase())) {
+                continue;
+              }
+            }
+
+            files.push(fullPath);
+          }
+        }
+      } catch (error: any) {
+        // Skip directories we can't read
+        if (error.code !== 'EACCES' && error.code !== 'EPERM') {
+          throw error;
+        }
+      }
+    }
+
+    await walkDirectory(directoryPath, recursive);
+    return files;
   }
 
   async getChunks(options: {

@@ -1,17 +1,17 @@
 /** Mielto TypeScript SDK - Main entry point. */
 
 // Client classes
-export { Mielto, MieltoOptions, BaseClient, BaseClientOptions } from './clients/index.js';
+export { Mielto, MieltoOptions, BaseClient, BaseClientOptions } from './clients/index';
 
 // Exception classes
-export * from './exceptions.js';
+export * from './exceptions';
 
 // Type definitions
-export * from './types/index.js';
+export * from './types/index';
 
 // Resource classes
-export * from './resources/index.js';
+export * from './resources/index';
 
 // Legacy compress client (deprecated - use Mielto.compress instead)
 // Note: Legacy client kept for backward compatibility
-export { MieltoCompressClient } from './legacy/compress.js';
+export { MieltoCompressClient } from './legacy/compress';

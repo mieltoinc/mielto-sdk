@@ -1,7 +1,7 @@
 /** Compress resource for text compression via Mielto API. */
 
-import { BaseClient } from '../clients/base.js';
-import { CompressRequest, CompressResponse } from '../types/compress.js';
+import { BaseClient } from '../clients/base';
+import { CompressRequest, CompressResponse } from '../types/compress';
 
 export class Compress {
   constructor(private client: BaseClient) {}

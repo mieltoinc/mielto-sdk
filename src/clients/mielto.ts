@@ -1,10 +1,10 @@
 /** Main Mielto client class. */
 
-import { BaseClient, BaseClientOptions } from './base.js';
-import { Chat } from '../resources/chat.js';
-import { Memories } from '../resources/memories.js';
-import { Collections } from '../resources/collections.js';
-import { Compress } from '../resources/compress.js';
+import { BaseClient } from './base';
+import { Chat } from '../resources/chat';
+import { Memories } from '../resources/memories';
+import { Collections } from '../resources/collections';
+import { Compress } from '../resources/compress';
 
 export interface MieltoOptions {
   apiKey: string;

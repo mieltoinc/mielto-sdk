@@ -1,11 +1,11 @@
 /** Chat completion resources for Mielto API. */
 
-import { BaseClient } from '../clients/base.js';
+import { BaseClient } from '../clients/base';
 import {
   ChatCompletion,
   ChatCompletionChunk,
   ChatCompletionRequest,
-} from '../types/chat.js';
+} from '../types/chat';
 // @ts-ignore - axios types should be available from dependencies
 import axios from 'axios';
 

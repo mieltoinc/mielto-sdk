@@ -15,7 +15,7 @@ import {
   CreditLimitExceededError,
   OverageLimitExceededError,
   ErrorResponse,
-} from '../exceptions.js';
+} from '../exceptions';
 
 export interface BaseClientOptions {
   apiKey: string;
