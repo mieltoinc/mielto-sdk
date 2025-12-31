@@ -102,6 +102,17 @@ AI-powered text compression:
 - Async compression with webhooks
 - Includes compression metrics
 
+### 🔧 Tools
+
+AI SDK and OpenAI function calling tools for memories and collections:
+
+- **Unified API** - Single `MieltoTools` class for both AI SDK and OpenAI
+- **Memory tools** - Search, add, and list memories
+- **Collection tools** - Search, insert, and list collections
+- **AI SDK integration** - Direct integration with Vercel AI SDK
+- **OpenAI function calling** - Native OpenAI function definitions and executors
+- **Type-safe** - Full TypeScript support with Zod schemas
+
 ## Usage Examples
 
 ### Chat Completions
@@ -473,6 +484,162 @@ const webhookResult = await client.compress.compress({
 });
 console.log(webhookResult.message); // "Compression response will be sent to webhook"
 ```
+
+### Tools
+
+Mielto provides ready-to-use tools for AI SDK and OpenAI function calling, enabling AI models to interact with memories and collections.
+
+#### AI SDK Integration
+
+```typescript
+import { MieltoTools } from '@mielto/mielto-sdk/tools';
+import { generateText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+// Create tools instance
+const tools = new MieltoTools(
+  {
+    apiKey: 'your-api-key',
+    userId: 'user_123',
+    collectionId: 'coll_456'
+  },
+  { toolTypes: 'both' }
+);
+
+// Get AI SDK tools
+const aiSdkTools = tools.getAISDKTools();
+
+// Use with AI SDK
+const { text } = await generateText({
+  model: openai('gpt-4'),
+  messages: [
+    { role: 'user', content: 'What did I say about Python yesterday?' }
+  ],
+  tools: aiSdkTools
+});
+
+console.log(text);
+```
+
+#### Streaming with Tools
+
+```typescript
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { MieltoTools } from '@mielto/mielto-sdk/tools';
+
+const tools = new MieltoTools(
+  { apiKey: 'your-api-key', userId: 'user_123' },
+  { toolTypes: 'both' }
+);
+
+const aiSdkTools = tools.getAISDKTools();
+
+const result = await streamText({
+  model: openai('gpt-4'),
+  messages: [
+    { role: 'user', content: 'What did I say about Python? Also remember that I love TypeScript.' }
+  ],
+  tools: aiSdkTools
+});
+
+for await (const chunk of result.textStream) {
+  process.stdout.write(chunk);
+}
+```
+
+#### OpenAI Function Calling
+
+```typescript
+import { MieltoTools } from '@mielto/mielto-sdk/tools';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Create tools instance
+const tools = new MieltoTools(
+  {
+    apiKey: 'your-mielto-api-key',
+    userId: 'user_123',
+    collectionId: 'coll_456'
+  },
+  { toolTypes: 'both' }
+);
+
+// Get OpenAI functions and executors
+const functions = tools.getOpenAIFunctions();
+const executors = tools.getExecutors();
+
+// Make a chat completion request
+const completion = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: [
+    { role: 'user', content: 'What did I say about Python yesterday?' }
+  ],
+  tools: functions.map(fn => ({
+    type: 'function' as const,
+    function: fn
+  })),
+  tool_choice: 'auto'
+});
+
+// Handle tool calls
+const message = completion.choices[0].message;
+
+if (message.tool_calls) {
+  for (const toolCall of message.tool_calls) {
+    const functionName = toolCall.function.name;
+    const args = JSON.parse(toolCall.function.arguments);
+    
+    // Execute the function
+    const result = await executors[functionName](args);
+    
+    console.log(`Tool: ${functionName}`);
+    console.log(`Result:`, result);
+  }
+}
+```
+
+#### Tool Types
+
+You can specify which tools to include:
+
+```typescript
+// Only memory tools
+const memoryTools = new MieltoTools(
+  { apiKey: 'your-api-key', userId: 'user_123' },
+  { toolTypes: 'memory' }
+);
+
+// Only collection tools
+const collectionTools = new MieltoTools(
+  { apiKey: 'your-api-key', collectionId: 'coll_456' },
+  { toolTypes: 'collection' }
+);
+
+// Both (default)
+const allTools = new MieltoTools(
+  { apiKey: 'your-api-key', userId: 'user_123', collectionId: 'coll_456' },
+  { toolTypes: 'both' }
+);
+```
+
+#### Available Tools
+
+**Memory Tools:**
+- `searchMemories` - Search for memories with semantic search
+- `addMemory` - Add a new memory
+- `listMemories` - List all memories with pagination
+
+**Collection Tools:**
+- `searchCollection` - Search within a collection
+- `insertToCollection` - Insert content into a collection
+- `listCollections` - List available collections
+
+**Utility Tools:**
+- `searchAvailableTools` - Search for available tools
+
+For complete documentation, see the [Tools Guide](./src/tools/README.md).
 
 ## Configuration
 

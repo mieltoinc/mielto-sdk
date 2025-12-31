@@ -65,6 +65,58 @@ A comprehensive example that demonstrates all features with error handling.
 tsx examples/complete.ts
 ```
 
+### Tools Examples
+
+#### AI SDK Tools (`tools-ai-sdk.ts`)
+Demonstrates using Mielto tools with Vercel AI SDK:
+- Searching memories
+- Adding memories
+- Searching collections
+- Streaming with tools
+- Using individual tools
+
+```bash
+npm run example:tools-ai-sdk
+# or
+tsx examples/tools-ai-sdk.ts
+```
+
+#### OpenAI Tools (`tools-openai.ts`)
+Demonstrates using Mielto tools with OpenAI's function calling API:
+- Function definitions and executors
+- Chat with tool calling
+- Memory and collection tools
+
+```bash
+npm run example:tools-openai
+# or
+tsx examples/tools-openai.ts
+```
+
+#### MieltoTools Class (`tools-class.ts`)
+Shows how to use the unified `MieltoTools` class for both AI SDK and OpenAI:
+- AI SDK integration
+- OpenAI function calling
+- Provider switching
+
+```bash
+npm run example:tools-class
+# or
+tsx examples/tools-class.ts
+```
+
+#### Complete Tools Example (`tools-complete.ts`)
+Comprehensive examples combining:
+- Streaming with OpenAI
+- Non-streaming chat with tools
+- Provider switching
+
+```bash
+npm run example:tools-complete
+# or
+tsx examples/tools-complete.ts
+```
+
 ### Browser (`browser/`)
 An interactive browser-based test application with forms for testing all SDK features.
 
@@ -86,6 +138,12 @@ All examples require an API key. Set it as an environment variable:
 export MIELTO_API_KEY=your-api-key-here
 ```
 
+For tools examples, you'll also need an OpenAI API key:
+
+```bash
+export OPENAI_API_KEY=your-openai-api-key-here
+```
+
 Then run any example:
 
 ```bash
@@ -102,6 +160,9 @@ node dist/examples/basic.js
 - Node.js 18 or higher
 - TypeScript 5.3 or higher
 - An active Mielto API key
+- For tools examples:
+  - `ai` and `zod` packages (for AI SDK examples)
+  - `openai` and `zod` packages (for OpenAI examples)
 
 ## Notes
 
