@@ -79,7 +79,6 @@ async function chatWithTools(
 	userMessage: string
 ) {
 	const functions = toolsInstance.getOpenAIFunctions()
-	const executors = toolsInstance.getExecutors()
 
 	const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
 		{ role: "user", content: userMessage },
@@ -105,26 +104,17 @@ async function chatWithTools(
 			return message.content
 		}
 
-		// Execute all tool calls
-		const toolResults: OpenAI.Chat.ChatCompletionToolMessageParam[] = []
+		// Execute all tool calls using the convenience method
+		const toolResults = await toolsInstance.executeToolCalls(message.tool_calls)
 
-		for (const toolCall of message.tool_calls) {
-			if (toolCall.type !== "function") continue
-			const functionName = toolCall.function.name
-			const args = JSON.parse(toolCall.function.arguments)
-
-			console.log(`\nCalling tool: ${functionName}`)
-			console.log("Arguments:", args)
-
-			const result = await executors[functionName](args)
-
-			console.log("Tool result:", result)
-
-			toolResults.push({
-				role: "tool",
-				tool_call_id: toolCall.id,
-				content: JSON.stringify(result),
-			})
+		// Log tool calls for debugging
+		if (message.tool_calls) {
+			for (const toolCall of message.tool_calls) {
+				if (toolCall.type === "function") {
+					console.log(`\nCalling tool: ${toolCall.function.name}`)
+					console.log("Arguments:", toolCall.function.arguments)
+				}
+			}
 		}
 
 		messages.push(...toolResults)

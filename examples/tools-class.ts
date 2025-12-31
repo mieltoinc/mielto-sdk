@@ -67,9 +67,8 @@ async function exampleOpenAI() {
 		{ toolTypes: "both" }
 	)
 
-	// Get OpenAI functions and executors
+	// Get OpenAI functions
 	const functions = tools.getOpenAIFunctions()
-	const executors = tools.getExecutors()
 
 	console.log("Available functions:", functions.map((f) => f.name))
 
@@ -97,24 +96,16 @@ async function exampleOpenAI() {
 			break
 		}
 
-		// Execute tool calls
-		const toolResults: OpenAI.Chat.ChatCompletionToolMessageParam[] = []
+		// Execute tool calls using the convenience method
+		const toolResults = await tools.executeToolCalls(message.tool_calls)
 
-		for (const toolCall of message.tool_calls) {
-			if (toolCall.type !== "function") continue
-
-			const functionName = toolCall.function.name
-			const args = JSON.parse(toolCall.function.arguments)
-
-			console.log(`\nCalling tool: ${functionName}`)
-			const result = await executors[functionName](args)
-			console.log("Tool result:", result)
-
-			toolResults.push({
-				role: "tool",
-				tool_call_id: toolCall.id,
-				content: JSON.stringify(result),
-			})
+		// Log tool calls for debugging
+		if (message.tool_calls) {
+			for (const toolCall of message.tool_calls) {
+				if (toolCall.type === "function") {
+					console.log(`\nCalling tool: ${toolCall.function.name}`)
+				}
+			}
 		}
 
 		messages.push(...toolResults)
@@ -153,7 +144,6 @@ async function exampleUnifiedAPI() {
 		// Use with OpenAI
 		const openaiClient = new OpenAI({ apiKey: openaiApiKey })
 		const functions = tools.getOpenAIFunctions()
-		const executors = tools.getExecutors()
 
 		const completion = await openaiClient.chat.completions.create({
 			model: "gpt-4",
@@ -166,13 +156,10 @@ async function exampleUnifiedAPI() {
 
 		const message = completion.choices[0].message
 		if (message.tool_calls) {
-			for (const toolCall of message.tool_calls) {
-				if (toolCall.type === "function") {
-					const result = await executors[toolCall.function.name](
-						JSON.parse(toolCall.function.arguments)
-					)
-					console.log("OpenAI Tool Result:", result)
-				}
+			const toolResults = await tools.executeToolCalls(message.tool_calls)
+			for (const result of toolResults) {
+				const parsed = JSON.parse(result.content as string)
+				console.log("OpenAI Tool Result:", parsed)
 			}
 		}
 		console.log("OpenAI Response:", message.content)

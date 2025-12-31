@@ -145,5 +145,88 @@ export class MieltoTools {
 	getDefinitions() {
 		return this.definitions
 	}
+
+	/**
+	 * Execute tool calls from an OpenAI response
+	 * 
+	 * This is a convenience method that handles executing tool calls and formatting
+	 * the results automatically in the format expected by OpenAI API.
+	 * 
+	 * @param toolCalls - List of tool calls from OpenAI response (e.g., `completion.choices[0].message.tool_calls`)
+	 * @returns Promise resolving to array of tool result messages in the format expected by OpenAI API
+	 * 
+	 * @example
+	 * ```typescript
+	 * const completion = await openai.chat.completions.create({
+	 *   model: "gpt-4",
+	 *   messages,
+	 *   tools: functions.map(fn => ({ type: "function" as const, function: fn }))
+	 * })
+	 * 
+	 * const toolResults = await tools.executeToolCalls(
+	 *   completion.choices[0].message.tool_calls
+	 * )
+	 * messages.push(...toolResults)
+	 * ```
+	 */
+	async executeToolCalls(
+		toolCalls?: OpenAI.Chat.ChatCompletionMessage["tool_calls"]
+	): Promise<OpenAI.Chat.ChatCompletionToolMessageParam[]> {
+		if (!toolCalls || toolCalls.length === 0) {
+			return []
+		}
+
+		const toolResults: OpenAI.Chat.ChatCompletionToolMessageParam[] = []
+
+		for (const toolCall of toolCalls) {
+			if (toolCall.type !== "function") continue
+
+			const functionName = toolCall.function.name
+			let args: any
+
+			// Parse arguments
+			try {
+				args = JSON.parse(toolCall.function.arguments)
+			} catch (error) {
+				// If parsing fails, return error result
+				toolResults.push({
+					role: "tool",
+					tool_call_id: toolCall.id,
+					content: JSON.stringify({
+						success: false,
+						error: `Failed to parse tool arguments: ${error instanceof Error ? error.message : String(error)}`,
+					}),
+				})
+				continue
+			}
+
+			// Execute the tool
+			let result: any
+			if (!(functionName in this.executors)) {
+				result = {
+					success: false,
+					error: `Unknown tool: ${functionName}`,
+				}
+			} else {
+				try {
+					result = await this.executors[functionName](args)
+				} catch (error) {
+					result = {
+						success: false,
+						error: error instanceof Error ? error.message : String(error),
+					}
+				}
+			}
+
+			// Format as tool message
+			toolResults.push({
+				role: "tool",
+				tool_call_id: toolCall.id,
+				content: JSON.stringify(result),
+			})
+		}
+
+		return toolResults
+	}
 }
 
