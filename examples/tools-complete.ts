@@ -11,7 +11,7 @@ import OpenAI from "openai"
 import { MieltoTools } from "../src/tools"
 
 // Example: OpenAI with Streaming
-async function exampleOpenAIStreaming() {
+export async function exampleOpenAIStreaming() {
 	console.log("=== OpenAI Streaming Example ===\n")
 
 	const mieltoApiKey = process.env.MIELTO_API_KEY || "your-api-key"
@@ -76,7 +76,7 @@ async function exampleOpenAIStreaming() {
 }
 
 // Example: Non-streaming chat with tools
-async function exampleChatWithTools() {
+export async function exampleChatWithTools() {
 	console.log("=== Chat with Tools Example ===\n")
 
 	const mieltoApiKey = process.env.MIELTO_API_KEY || "your-api-key"
@@ -139,7 +139,7 @@ async function exampleChatWithTools() {
 }
 
 // Example: Switching between providers
-async function exampleProviderSwitching() {
+export async function exampleProviderSwitching() {
 	console.log("=== Provider Switching Example ===\n")
 
 	const mieltoApiKey = process.env.MIELTO_API_KEY || "your-api-key"

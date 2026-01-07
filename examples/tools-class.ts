@@ -12,7 +12,7 @@ import { openai } from "@ai-sdk/openai"
 import OpenAI from "openai"
 import { MieltoTools } from "../src/tools"
 
-async function exampleAISDK() {
+export async function exampleAISDK() {
 	console.log("=== AI SDK Example ===\n")
 
 	const apiKey = process.env.MIELTO_API_KEY || "your-api-key"
@@ -48,7 +48,7 @@ async function exampleAISDK() {
 	console.log("AI Response:", text)
 }
 
-async function exampleOpenAI() {
+export async function exampleOpenAI() {
 	console.log("\n=== OpenAI Example ===\n")
 
 	const apiKey = process.env.MIELTO_API_KEY || "your-api-key"
@@ -112,7 +112,7 @@ async function exampleOpenAI() {
 	}
 }
 
-async function exampleUnifiedAPI() {
+export async function exampleUnifiedAPI() {
 	console.log("\n=== Unified API Example ===\n")
 
 	const apiKey = process.env.MIELTO_API_KEY || "your-api-key"

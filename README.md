@@ -5,7 +5,7 @@ Official TypeScript/JavaScript client library for the Mielto API.
 ## Installation
 
 ```bash
-npm install @mielto/mielto-sdk
+npm install mielto
 ```
 
 Or install from source:
@@ -19,8 +19,8 @@ npm run build
 ## Quick Start
 
 ```typescript
-import { Mielto } from '@mielto/mielto-sdk';
-import { MemoryCreate, CollectionCreate, SearchRequest } from '@mielto/mielto-sdk';
+import { Mielto } from 'mielto';
+import { MemoryCreate, CollectionCreate, SearchRequest } from 'mielto';
 
 // Initialize the client
 const client = new Mielto({ apiKey: 'your-api-key' });
@@ -120,7 +120,7 @@ AI SDK and OpenAI function calling tools for memories and collections:
 The Mielto chat API is OpenAI-compatible and provides intelligent context injection:
 
 ```typescript
-import { Mielto } from '@mielto/mielto-sdk';
+import { Mielto } from 'mielto';
 
 const client = new Mielto({ apiKey: 'your-api-key' });
 
@@ -227,7 +227,7 @@ if (response.choices[0].message.tool_calls) {
 ### Memories
 
 ```typescript
-import { Mielto } from '@mielto/mielto-sdk';
+import { Mielto } from 'mielto';
 
 const client = new Mielto({ apiKey: 'your-api-key' });
 
@@ -266,7 +266,7 @@ const memories = await client.memories.fromMessages({
 ### Collections
 
 ```typescript
-import { Mielto } from '@mielto/mielto-sdk';
+import { Mielto } from 'mielto';
 import * as fs from 'fs';
 
 const client = new Mielto({ apiKey: 'your-api-key' });
@@ -449,7 +449,7 @@ for (const result of results.results) {
 ### Compress
 
 ```typescript
-import { Mielto } from '@mielto/mielto-sdk';
+import { Mielto } from 'mielto';
 
 const client = new Mielto({ apiKey: 'your-api-key' });
 
@@ -492,7 +492,7 @@ Mielto provides ready-to-use tools for AI SDK and OpenAI function calling, enabl
 #### AI SDK Integration
 
 ```typescript
-import { MieltoTools } from '@mielto/mielto-sdk/tools';
+import { MieltoTools } from 'mielto/tools';
 import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
@@ -526,7 +526,7 @@ console.log(text);
 ```typescript
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import { MieltoTools } from '@mielto/mielto-sdk/tools';
+import { MieltoTools } from 'mielto/tools';
 
 const tools = new MieltoTools(
   { apiKey: 'your-api-key', userId: 'user_123' },
@@ -551,7 +551,7 @@ for await (const chunk of result.textStream) {
 #### OpenAI Function Calling
 
 ```typescript
-import { MieltoTools } from '@mielto/mielto-sdk/tools';
+import { MieltoTools } from 'mielto/tools';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -654,7 +654,7 @@ You can provide your API key in multiple ways:
 
 2. **Environment variable**:
 ```typescript
-   import { Mielto } from '@mielto/mielto-sdk';
+   import { Mielto } from 'mielto';
    
    const client = new Mielto({
      apiKey: process.env.MIELTO_API_KEY || ''
@@ -698,7 +698,7 @@ import {
   CreditLimitExceededError,
   OverageLimitExceededError,
   MieltoError
-} from '@mielto/mielto-sdk';
+} from 'mielto';
 
 const client = new Mielto({ apiKey: 'your-api-key' });
 
