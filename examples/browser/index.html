@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mielto SDK Browser Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .api-key-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .api-key-section input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .api-key-section input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab {
+      padding: 15px 25px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      color: #667eea;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      padding: 12px;
+      border: 2px dashed #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .file-input-wrapper input[type="file"]:hover {
+      border-color: #667eea;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .response-section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .response-section.show {
+      display: block;
+    }
+
+    .response-section h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .response-content {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .error {
+      color: #dc3545;
+      background: #f8d7da;
+      border-color: #f5c6cb;
+    }
+
+    .success {
+      color: #155724;
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Mielto SDK Browser Test</h1>
+      <p>Test all Mielto API features directly in your browser</p>
+    </div>
+
+    <div class="content">
+      <div class="api-key-section">
+        <label for="apiKey">API Key:</label>
+        <input type="password" id="apiKey" placeholder="Enter your Mielto API key" />
+        <small>Your API key is stored locally and never sent to any server except Mielto's API</small>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="chat">💬 Chat</button>
+        <button class="tab" data-tab="memories">🧠 Memories</button>
+        <button class="tab" data-tab="collections">📚 Collections</button>
+        <button class="tab" data-tab="compress">🗜️ Compress</button>
+      </div>
+
+      <!-- Chat Tab -->
+      <div id="chat" class="tab-content active">
+        <form id="chatForm">
+          <div class="form-group">
+            <label for="chatModel">Model:</label>
+            <select id="chatModel" required>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="chatSystem">System Message:</label>
+            <textarea id="chatSystem" placeholder="You are a helpful assistant.">You are a helpful assistant.</textarea>
+          </div>
+          <div class="form-group">
+            <label for="chatMessage">User Message:</label>
+            <textarea id="chatMessage" required placeholder="Enter your message here..."></textarea>
+          </div>
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="chatStream" />
+              <label for="chatStream">Stream response</label>
+            </div>
+          </div>
+          <button type="submit">Send Message</button>
+        </form>
+        <div id="chatResponse" class="response-section"></div>
+      </div>
+
+      <!-- Memories Tab -->
+      <div id="memories" class="tab-content">
+        <form id="memoriesForm">
+          <div class="form-group">
+            <label for="memoryUserId">User ID:</label>
+            <input type="text" id="memoryUserId" required placeholder="user_123" />
+          </div>
+          <div class="form-group">
+            <label for="memoryContent">Memory Content:</label>
+            <textarea id="memoryContent" required placeholder="User prefers dark mode and uses macOS"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="memoryTopics">Topics (comma-separated):</label>
+            <input type="text" id="memoryTopics" placeholder="preferences, ui, platform" />
+          </div>
+          <button type="submit">Create Memory</button>
+        </form>
+        <div style="margin-top: 30px;">
+          <h3>Search Memories</h3>
+          <form id="memorySearchForm" style="margin-top: 15px;">
+            <div class="form-group">
+              <label for="memorySearchQuery">Search Query:</label>
+              <input type="text" id="memorySearchQuery" required placeholder="dark mode" />
+            </div>
+            <div class="form-group">
+              <label for="memorySearchUserId">User ID:</label>
+              <input type="text" id="memorySearchUserId" required placeholder="user_123" />
+            </div>
+            <button type="submit">Search</button>
+          </form>
+        </div>
+        <div id="memoriesResponse" class="response-section"></div>
+      </div>
+
+      <!-- Collections Tab -->
+      <div id="collections" class="tab-content">
+        <form id="collectionCreateForm">
+          <h3>Create Collection</h3>
+          <div class="form-group">
+            <label for="collectionName">Collection Name:</label>
+            <input type="text" id="collectionName" required placeholder="My Documents" />
+          </div>
+          <div class="form-group">
+            <label for="collectionDescription">Description:</label>
+            <textarea id="collectionDescription" placeholder="A collection of important documents"></textarea>
+          </div>
+          <button type="submit">Create Collection</button>
+        </form>
+
+        <div style="margin-top: 30px;">
+          <h3>Insert Content</h3>
+          <form id="collectionInsertForm" style="margin-top: 15px;">
+            <div class="form-group">
+              <label for="collectionId">Collection ID:</label>
+              <input type="text" id="collectionId" required placeholder="Enter collection ID from above" />
+            </div>
+            <div class="form-group">
+              <label for="collectionContent">Content:</label>
+              <textarea id="collectionContent" placeholder="Document content here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="collectionLabel">Label:</label>
+              <input type="text" id="collectionLabel" placeholder="Document title" />
+            </div>
+            <div class="form-group">
+              <label for="collectionFile">Or Upload File:</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="collectionFile" />
+              </div>
+              <small>File will be converted to base64 for upload</small>
+            </div>
+            <button type="submit">Insert</button>
+          </form>
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h3>Search Collection</h3>
+          <form id="collectionSearchForm" style="margin-top: 15px;">
+            <div class="form-group">
+              <label for="collectionSearchId">Collection ID:</label>
+              <input type="text" id="collectionSearchId" required placeholder="Enter collection ID" />
+            </div>
+            <div class="form-group">
+              <label for="collectionSearchQuery">Search Query:</label>
+              <input type="text" id="collectionSearchQuery" required placeholder="artificial intelligence" />
+            </div>
+            <button type="submit">Search</button>
+          </form>
+        </div>
+        <div id="collectionsResponse" class="response-section"></div>
+      </div>
+
+      <!-- Compress Tab -->
+      <div id="compress" class="tab-content">
+        <form id="compressForm">
+          <div class="form-group">
+            <label for="compressContent">Text to Compress:</label>
+            <textarea id="compressContent" required placeholder="Enter text to compress..."></textarea>
+          </div>
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="compressMetadata" />
+              <label for="compressMetadata">Include metadata</label>
+            </div>
+          </div>
+          <button type="submit">Compress</button>
+        </form>
+        <div id="compressResponse" class="response-section"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
+

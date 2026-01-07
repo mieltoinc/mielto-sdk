@@ -1,36 +1,76 @@
 {
-  "name": "@mielto/mielto-sdk",
-  "version": "1.0.0",
+  "name": "mielto",
+  "version": "1.0.1",
   "description": "TypeScript SDK for Mielto API",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
-    "test": "tsx example-compress.ts"
+    "test": "tsx example-compress.ts",
+    "typecheck": "tsc --noEmit",
+    "example:basic": "tsx examples/basic.ts",
+    "example:chat": "tsx examples/chat.ts",
+    "example:memories": "tsx examples/memories.ts",
+    "example:collections": "tsx examples/collections.ts",
+    "example:compress": "tsx examples/compress.ts",
+    "example:complete": "tsx examples/complete.ts",
+    "example:browser": "vite examples/browser",
+    "example:tools-ai-sdk": "tsx examples/tools-ai-sdk.ts",
+    "example:tools-openai": "tsx examples/tools-openai.ts",
+    "example:tools-complete": "tsx examples/tools-complete.ts",
+    "example:tools-class": "tsx examples/tools-class.ts"
   },
   "keywords": [
     "mielto",
     "compression",
     "text",
     "api",
-    "sdk"
+    "sdk",
+    "typescript"
   ],
   "author": "Mielto",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mieltoinc/mielto.git",
+    "directory": "libs/mielto_typescript"
+  },
+  "homepage": "https://mielto.com",
+  "bugs": {
+    "url": "https://github.com/mieltoinc/mielto/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "dotenv": "^17.2.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@ai-sdk/openai": "^3.0.2",
+    "vite": "^7.3.0"
   },
   "dependencies": {
-    "axios": "^1.6.0"
+    "ai": "^6.0.5",
+    "axios": "^1.13.2",
+    "file-type": "^21.2.0",
+    "openai": "^6.15.0",
+    "zod": "^4.3.2"
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ]
 }
