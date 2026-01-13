@@ -1,6 +1,6 @@
 {
   "name": "mielto",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TypeScript SDK for Mielto API",
   "type": "module",
   "main": "dist/index.js",
@@ -65,6 +65,7 @@
     "ai": "^6.0.5",
     "axios": "^1.13.2",
     "file-type": "^21.2.0",
+    "ignore": "^5.2.4",
     "openai": "^6.15.0",
     "zod": "^4.3.2"
   },

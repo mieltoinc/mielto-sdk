@@ -378,8 +378,8 @@ async function streamChatWithTools(userMessage: string) {
   - `query` (required): Search query string
   - `collectionId` (optional): Collection ID (uses config default if not provided)
   - `searchType` (optional): 'hybrid', 'vector', or 'keyword'
-  - `maxResults` (optional): Max results to return
-  - `minScore` (optional): Minimum relevance score
+  - `k` (optional): Max results to return
+  - `scoreThreshold` (optional): Minimum score threshold to filter results (0.0 to 1.0)
   - `filters` (optional): Additional filters object
   - `metadataFilters` (optional): Metadata filters object
 

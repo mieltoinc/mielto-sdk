@@ -47,8 +47,8 @@ export interface MemorySearchResponse {
 }
 
 export interface MemoryListResponse {
-  memories: Memory[];
-  total_count: number;
+  data: Memory[];
+  total_count?: number | null;
   next_cursor?: string | null;
   has_more: boolean;
 }
@@ -80,9 +80,15 @@ export interface MemoryChunk {
 }
 
 export interface MemoryChunksResponse {
-  chunks: MemoryChunk[];
-  total_count: number;
+  data: MemoryChunk[];
+  total_count?: number | null;
   next_cursor?: string | null;
   has_more: boolean;
+}
+
+export interface MemoryProfileResponse {
+  user_id: string;
+  profile?: Memory | null;
+  structured_profile?: Record<string, any> | null;
 }
 

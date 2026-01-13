@@ -12,6 +12,7 @@ import {
   UploadResponse,
   FileUpload,
   CollectionStoreType,
+  ReaderProviderConfig,
 } from '../types/collection';
 import { detectMimetypeFromFile, detectMimetypeFromBuffer } from '../utils';
 
@@ -37,7 +38,7 @@ export class Collections {
     visibility?: string;
     search?: string;
     tags?: string;
-  } = {}): Promise<{ data: Collection[]; total: number }> {
+  } = {}): Promise<{ data: Collection[]; total_count: number; page?: number | null; limit?: number | null }> {
     const params: Record<string, any> = {
       skip: options.skip || 0,
       limit: options.limit || 100,
@@ -47,7 +48,7 @@ export class Collections {
     if (options.search) params.search = options.search;
     if (options.tags) params.tags = options.tags;
 
-    return this.client.get<{ data: Collection[]; total: number }>('/collections', params);
+    return this.client.get<{ data: Collection[]; total_count: number; page?: number | null; limit?: number | null }>('/collections', params);
   }
 
   async update(collectionId: string, collectionData: CollectionUpdate | Record<string, any>): Promise<Collection> {
@@ -55,8 +56,9 @@ export class Collections {
     return this.client.put<Collection>(`/collections/${collectionId}`, payload);
   }
 
-  async delete(collectionId: string): Promise<any> {
-    return this.client.delete(`/collections/${collectionId}`);
+  async delete(collectionId: string): Promise<{ message: string; collection_id: string; status: string; job_id?: string }> {
+    // Collections deletion is async and returns 202 Accepted with status info
+    return this.client.delete<{ message: string; collection_id: string; status: string; job_id?: string }>(`/collections/${collectionId}`);
   }
 
   async search(searchRequest: SearchRequest | Record<string, any>): Promise<SearchResponse> {
@@ -76,7 +78,7 @@ export class Collections {
     metadata?: Record<string, any>;
     mimetype?: string;
     ingest?: boolean;
-    reader?: string | Record<string, string>;
+    reader?: string | ReaderProviderConfig;
   }): Promise<UploadResponse> {
     const filesList: FileUpload[] = [];
 
@@ -227,9 +229,10 @@ export class Collections {
     exclude_patterns?: string[];
     metadata?: Record<string, any>;
     ingest?: boolean;
-    reader?: string | Record<string, any>;
+    reader?: string | ReaderProviderConfig;
     batch_size?: number;
     show_progress?: boolean;
+    use_gitignore?: boolean;
   }): Promise<UploadResponse[]> {
     try {
       // Dynamic import for Node.js modules (only works in Node.js)
@@ -243,6 +246,7 @@ export class Collections {
       const excludePatterns = options.exclude_patterns || [];
       const batchSize = options.batch_size || 10;
       const showProgress = options.show_progress !== false; // Default to true
+      const useGitignore = options.use_gitignore !== false; // Default to true
 
       // Check if directory exists
       try {
@@ -257,6 +261,17 @@ export class Collections {
         throw error;
       }
 
+      // Try to load ignore library for .gitignore support
+      let ignoreLib: any = null;
+      if (useGitignore) {
+        try {
+          // @ts-ignore - ignore package may not have type definitions
+          ignoreLib = (await import('ignore')).default;
+        } catch (error) {
+          // ignore library not available, continue without .gitignore support
+        }
+      }
+
       // Collect all files
       const filesToUpload = await this._collectFiles(
         fs,
@@ -264,7 +279,8 @@ export class Collections {
         directoryPath,
         recursive,
         fileExtensions,
-        excludePatterns
+        excludePatterns,
+        ignoreLib
       );
 
       if (filesToUpload.length === 0) {
@@ -421,9 +437,13 @@ export class Collections {
     directoryPath: string,
     recursive: boolean,
     fileExtensions?: string[],
-    excludePatterns?: string[]
+    excludePatterns?: string[],
+    ignoreLib?: any
   ): Promise<string[]> {
     const files: string[] = [];
+
+    // Load .gitignore if available
+    const gitignoreChecker = await this._loadGitignore(fs, path, directoryPath, ignoreLib);
 
     async function walkDirectory(dir: string, isRecursive: boolean): Promise<void> {
       try {
@@ -434,7 +454,15 @@ export class Collections {
 
           if (entry.isDirectory()) {
             if (isRecursive) {
-              // Check if directory should be excluded
+              // Get relative path for gitignore matching
+              const relativePath = path.relative(directoryPath, fullPath);
+              
+              // Check .gitignore first
+              if (gitignoreChecker && gitignoreChecker.ignores(relativePath)) {
+                continue;
+              }
+
+              // Check if directory should be excluded by user patterns
               if (excludePatterns && excludePatterns.some(pattern => {
                 // Simple pattern matching - support exact match and wildcard patterns
                 if (pattern.includes('*')) {
@@ -448,7 +476,15 @@ export class Collections {
               await walkDirectory(fullPath, isRecursive);
             }
           } else if (entry.isFile()) {
-            // Check if file should be excluded
+            // Get relative path for gitignore matching
+            const relativePath = path.relative(directoryPath, fullPath);
+
+            // Check .gitignore first
+            if (gitignoreChecker && gitignoreChecker.ignores(relativePath)) {
+              continue;
+            }
+
+            // Check if file should be excluded by user patterns
             if (excludePatterns && excludePatterns.some(pattern => {
               // Simple pattern matching
               if (pattern.includes('*')) {
@@ -481,6 +517,64 @@ export class Collections {
 
     await walkDirectory(directoryPath, recursive);
     return files;
+  }
+
+  /**
+   * Load .gitignore file from directory or parent directories.
+   * @private
+   */
+  private async _loadGitignore(
+    fs: any,
+    path: any,
+    directoryPath: string,
+    ignoreLib?: any
+  ): Promise<any> {
+    if (!ignoreLib) {
+      return null;
+    }
+
+    try {
+      // Check current directory and parent directories
+      let currentDir = path.resolve(directoryPath);
+      const rootDir = path.parse(currentDir).root;
+
+      while (currentDir !== rootDir) {
+        const gitignorePath = path.join(currentDir, '.gitignore');
+        try {
+          const stats = await fs.stat(gitignorePath);
+          if (stats.isFile()) {
+            const content = await fs.readFile(gitignorePath, 'utf-8');
+            const patterns = content
+              .split('\n')
+              .map((line: string) => line.trim())
+              .filter((line: string) => line && !line.startsWith('#'));
+
+            if (patterns.length > 0) {
+              const ig = ignoreLib();
+              ig.add(patterns);
+              return ig;
+            }
+          }
+        } catch (error: any) {
+          // File doesn't exist or can't be read, continue to parent
+          if (error.code !== 'ENOENT' && error.code !== 'EACCES' && error.code !== 'EPERM') {
+            // Log other errors but continue
+            console.warn(`Failed to read .gitignore at ${gitignorePath}: ${error.message}`);
+          }
+        }
+
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+          break; // Reached root
+        }
+        currentDir = parentDir;
+      }
+    } catch (error: any) {
+      // If any error occurs, return null (no gitignore)
+      console.warn(`Failed to load .gitignore: ${error.message}`);
+    }
+
+    return null;
   }
 
   async getChunks(options: {

@@ -97,7 +97,7 @@ export function createExecutors(
 
 				return {
 					success: true,
-					memories: response.memories,
+					memories: response.data,
 					totalCount: response.total_count,
 					hasMore: response.has_more,
 					nextCursor: response.next_cursor,
@@ -116,8 +116,8 @@ export function createExecutors(
 			query: string
 			collectionId?: string
 			searchType?: SearchType
-			maxResults?: number
-			minScore?: number
+			k?: number
+			scoreThreshold?: number
 			filters?: Record<string, any>
 			metadataFilters?: Record<string, any>
 		}) => {
@@ -134,8 +134,8 @@ export function createExecutors(
 					query: args.query,
 					collection_id: targetCollectionId,
 					search_type: args.searchType,
-					max_results: args.maxResults,
-					min_score: args.minScore,
+					k: args.k,
+					score_threshold: args.scoreThreshold,
 					filters: args.filters,
 					metadata_filters: args.metadataFilters,
 				})
@@ -223,7 +223,7 @@ export function createExecutors(
 				return {
 					success: true,
 					collections: response.data,
-					total: response.total,
+					total: response.total_count,
 				}
 			} catch (error) {
 				return {

@@ -753,7 +753,7 @@ const result = await client.memories.list({
   limit: 50
 });
 
-for (const memory of result.memories) {
+for (const memory of result.data) {
   console.log(memory.memory);
 }
 
