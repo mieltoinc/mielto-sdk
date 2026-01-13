@@ -48,7 +48,7 @@ await client.collections.insert({
 const results = await client.collections.search({
   query: 'artificial intelligence',
   collection_id: collection.id,
-  max_results: 10
+  k: 10
 });
 
 // Compress text
@@ -437,7 +437,7 @@ const results = await client.collections.search({
   query: 'transformer architecture',
   collection_id: collection.id,
   search_type: 'hybrid',
-  max_results: 10
+  k: 10
 });
 
 for (const result of results.results) {

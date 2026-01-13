@@ -81,7 +81,7 @@ async function main() {
       const searchResults = await client.collections.search({
         query: 'artificial intelligence',
         collection_id: collection.id,
-        limit: 3,
+        k: 3,
       });
       console.log(`✅ Found ${searchResults.results.length} relevant results\n`);
     } catch (error) {
