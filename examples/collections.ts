@@ -126,7 +126,7 @@ async function main() {
   const searchResults = await client.collections.search({
     query: 'artificial intelligence machine learning',
     collection_id: collection.id,
-    limit: 5,
+    k: 5,
   });
 
   console.log(`Found ${searchResults.results.length} relevant results:`);

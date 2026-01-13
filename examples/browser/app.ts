@@ -336,7 +336,7 @@ collectionSearchForm.addEventListener('submit', async (e) => {
     const result = await client.collections.search({
       collection_id: collectionId,
       query,
-      max_results: 10,
+      k: 10,
     });
 
     showResponse('collectionsResponse', {
