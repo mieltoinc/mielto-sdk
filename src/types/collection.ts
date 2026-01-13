@@ -74,8 +74,8 @@ export interface SearchRequest {
   query: string;
   collection_id: string;
   search_type?: SearchType;
-  max_results?: number;
-  min_score?: number;
+  k?: number;
+  score_threshold?: number;
   filters?: Record<string, any>;
   metadata_filters?: Record<string, any>;
 }
@@ -98,8 +98,8 @@ export interface Chunk {
 }
 
 export interface ChunksResponse {
-  chunks: Chunk[];
-  total_count: number;
+  data: Chunk[];
+  total_count?: number | null;
   next_cursor?: string | null;
   has_more: boolean;
 }
@@ -108,6 +108,33 @@ export interface FileUpload {
   file: string; // base64 encoded
   label: string;
   mimetype?: string;
+}
+
+export enum ExtractStrategy {
+  PAGE = "page",
+  AGENTIC = "agentic"
+}
+
+export interface ExtractConfig {
+  strategy?: ExtractStrategy;
+  pages?: (number | string)[];
+  instructions?: string | Record<string, any>;
+}
+
+export interface ChunkConfig {
+  strategy?: string;
+  chunk_size?: number;
+  chunk_overlap?: number;
+  max_chunks?: number;
+  separators?: string[];
+}
+
+export interface ReaderProviderConfig {
+  provider?: string;
+  reader?: string;
+  config?: Record<string, any>;
+  extract?: ExtractConfig;
+  chunk?: ChunkConfig;
 }
 
 export interface UploadRequest {
@@ -120,7 +147,7 @@ export interface UploadRequest {
   description?: string;
   metadata?: Record<string, any>;
   ingest?: boolean;
-  reader?: string | Record<string, string>;
+  reader?: string | ReaderProviderConfig;
 }
 
 export interface UploadContent {

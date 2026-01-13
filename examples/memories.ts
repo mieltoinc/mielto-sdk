@@ -77,8 +77,8 @@ async function main() {
     user_id: memory.user_id,
     limit: 10,
   });
-  console.log(`Memory has ${chunks.chunks.length} chunks:`);
-  chunks.chunks.forEach((chunk, i) => {
+  console.log(`Memory has ${chunks.data.length} chunks:`);
+  chunks.data.forEach((chunk, i) => {
     console.log(`  Chunk ${i + 1}: ${chunk.content.substring(0, 50)}...`);
   });
   console.log('');
@@ -91,7 +91,7 @@ async function main() {
     limit: 10,
   });
 
-  console.log(`User has ${allMemories.memories.length} memories`);
+  console.log(`User has ${allMemories.data.length} memories`);
   console.log('');
 
   console.log('=== Replacing a Memory ===\n');

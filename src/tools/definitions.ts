@@ -221,14 +221,14 @@ export const searchCollectionDefinition: ToolDefinition = {
 			.nativeEnum(SearchType)
 			.optional()
 			.describe("Type of search: hybrid, vector, or keyword"),
-		maxResults: z
+		k: z
 			.number()
 			.optional()
 			.describe("Maximum number of results to return"),
-		minScore: z
+		scoreThreshold: z
 			.number()
 			.optional()
-			.describe("Minimum relevance score threshold"),
+			.describe("Minimum score threshold to filter results (0.0 to 1.0)"),
 		filters: z
 			.record(z.string(), z.any())
 			.optional()

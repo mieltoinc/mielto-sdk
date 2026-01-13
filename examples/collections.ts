@@ -146,8 +146,8 @@ async function main() {
     collection_id: collection.id,
     limit: 10,
   });
-  console.log(`Collection has ${chunks.chunks.length} chunks`);
-  chunks.chunks.forEach((chunk, i) => {
+  console.log(`Collection has ${chunks.data.length} chunks`);
+  chunks.data.forEach((chunk, i) => {
     console.log(`  Chunk ${i + 1}: ${chunk.content.substring(0, 50)}...`);
   });
   console.log('');
@@ -174,7 +174,7 @@ async function main() {
     limit: 10,
   });
 
-  console.log(`You have ${allCollections.data.length} collections (total: ${allCollections.total})`);
+  console.log(`You have ${allCollections.data.length} collections (total: ${allCollections.total_count})`);
   allCollections.data.forEach((col, i) => {
     console.log(`  ${i + 1}. ${col.name} (${col.id})`);
   });
